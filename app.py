@@ -274,6 +274,11 @@ change_pct = price_data.get("change_pct", 0)
 color_class = "price-up" if change >= 0 else "price-down"
 arrow = "▲" if change >= 0 else "▼"
 
+# --- NEW: CURRENCY DETECTION ---
+currency_code = info.get("currency", "USD")
+currency_symbols = {"USD": "$", "INR": "₹", "EUR": "€", "GBP": "£", "JPY": "¥", "CAD": "C$", "AUD": "A$"}
+sym = currency_symbols.get(currency_code, "$") # Defaults to $ if currency is unknown
+
 st.markdown(f"""
 <div style="display:flex; align-items:center; gap:16px; padding: 8px 0 16px;">
     <div>
@@ -284,9 +289,9 @@ st.markdown(f"""
         <div style="color: #4a5568; font-size:0.75rem; margin-top:2px;">{sector} · {info.get("industry","N/A")}</div>
     </div>
     <div style="margin-left:auto; text-align:right;">
-        <div style="font-size:2.2rem; font-weight:700; color:#e8f0fe;">${price:,.2f}</div>
+        <div style="font-size:2.2rem; font-weight:700; color:#e8f0fe;">{sym}{price:,.2f}</div>
         <div class="{color_class}" style="font-size:1rem; font-weight:600;">
-            {arrow} ${abs(change):.2f} ({arrow} {abs(change_pct):.2f}%)
+            {arrow} {sym}{abs(change):.2f} ({arrow} {abs(change_pct):.2f}%)
         </div>
     </div>
 </div>
@@ -296,13 +301,13 @@ st.markdown(f"""
 # ─── KEY METRICS ─────────────────────────────────────────────────────────────────
 cols = st.columns(7)
 metrics = [
-    ("Open", f"${price_data.get('open', 0):,.2f}", None),
-    ("Day High", f"${price_data.get('high', 0):,.2f}", None),
-    ("Day Low", f"${price_data.get('low', 0):,.2f}", None),
+    ("Open", f"{sym}{price_data.get('open', 0):,.2f}", None),
+    ("Day High", f"{sym}{price_data.get('high', 0):,.2f}", None),
+    ("Day Low", f"{sym}{price_data.get('low', 0):,.2f}", None),
     ("Volume", format_volume(price_data.get("volume", 0)), None),
-    ("Market Cap", format_market_cap(info.get("market_cap", 0)), None),
+    ("Market Cap", format_market_cap(info.get("market_cap", 0), sym), None),
     ("P/E Ratio", f"{info.get('pe_ratio', 0):.1f}" if info.get("pe_ratio") else "N/A", None),
-    ("52W High", f"${info.get('52w_high', 0):,.2f}" if info.get("52w_high") else "N/A", None),
+    ("52W High", f"{sym}{info.get('52w_high', 0):,.2f}" if info.get("52w_high") else "N/A", None),
 ]
 for col, (label, value, delta) in zip(cols, metrics):
     col.metric(label, value, delta)
@@ -357,8 +362,8 @@ with tab2:
                     "Ticker": t,
                     "Return (Period)": f"{ret:+.2f}%",
                     "Annualized Volatility": f"{vol:.2f}%",
-                    "Start Price": f"${d['Close'].iloc[0]:.2f}",
-                    "End Price": f"${d['Close'].iloc[-1]:.2f}",
+                    "Start Price": f"{sym}{d['Close'].iloc[0]:.2f}",
+                    "End Price": f"{sym}{d['Close'].iloc[-1]:.2f}",
                     "Data Points": len(d),
                 })
             st.dataframe(
@@ -377,9 +382,9 @@ with tab3:
             fund_data = {
                 "Sector": info.get("sector", "N/A"),
                 "Industry": info.get("industry", "N/A"),
-                "Market Cap": format_market_cap(info.get("market_cap", 0)),
+                "Market Cap": format_market_cap(info.get("market_cap", 0), sym),
                 "P/E Ratio": f"{info.get('pe_ratio', 0):.2f}" if info.get("pe_ratio") else "N/A",
-                "EPS (TTM)": f"${info.get('eps', 0):.2f}" if info.get("eps") else "N/A",
+                "EPS (TTM)": f"{sym}{info.get('eps', 0):.2f}" if info.get("eps") else "N/A",
                 "Beta": f"{info.get('beta', 0):.2f}" if info.get("beta") else "N/A",
                 "Dividend Yield": f"{info.get('dividend_yield', 0)*100:.2f}%" if info.get("dividend_yield") else "N/A",
             }
@@ -400,8 +405,8 @@ with tab3:
                 st.markdown(f"""
                 <div style="margin: 8px 0;">
                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#4a5568; margin-bottom:6px;">
-                        <span>52W Low: ${low_52:.2f}</span>
-                        <span>52W High: ${high_52:.2f}</span>
+                        <span>52W Low: {sym}{low_52:.2f}</span>
+                        <span>52W High: {sym}{high_52:.2f}</span>
                     </div>
                     <div style="background:#1e2d4a; border-radius:6px; height:10px; position:relative; overflow:hidden;">
                         <div style="background: linear-gradient(90deg, #00d4aa, #3d8ef8); width:{pct_pos:.1f}%; height:100%; border-radius:6px;"></div>
@@ -432,10 +437,10 @@ with tab4:
         if not df.empty:
             close = df["Close"]
             stats = {
-                "Current Price": f"${price:.2f}",
-                "Period High": f"${close.max():.2f}",
-                "Period Low": f"${close.min():.2f}",
-                "Period Avg": f"${close.mean():.2f}",
+                "Current Price": f"{sym}{price:.2f}",
+                "Period High": f"{sym}{close.max():.2f}",
+                "Period Low": f"{sym}{close.min():.2f}",
+                "Period Avg": f"{sym}{close.mean():.2f}",
                 "Period Return": f"{((close.iloc[-1]/close.iloc[0])-1)*100:+.2f}%",
                 "Annualized Volatility": f"{get_volatility(df):.2f}%",
                 "Total Candles": str(len(df)),

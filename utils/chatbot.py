@@ -1,16 +1,14 @@
 import requests
 import json
-
-# ── Google Gemini Free API ─────────────────────────────────────────────────────
-GEMINI_API_KEY = "AIzaSyB4mNRdjAc8Kee2Q7-rYdmY1BgtOW51f0w"  # ← Paste your key here
-GEMINI_MODEL   = "gemini-flash-latest"
 import streamlit as st
-
-# Securely fetch the API key from Streamlit Secrets
+# ── Google Gemini Free API ─────────────────────────────────────────────────────
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-except (FileNotFoundError, KeyError):
-    GEMINI_API_KEY = "" # Fails gracefully if secret is missing
+except Exception:
+    GEMINI_API_KEY = "" # Fallback if secret isn't set
+
+GEMINI_MODEL   = "gemini-flash-latest"
+GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
 def analyze_stock(ticker: str, company_name: str, price_data: dict, info: dict, df_tail) -> dict:
     """Calls Gemini AI to analyze the stock returning a JSON."""
