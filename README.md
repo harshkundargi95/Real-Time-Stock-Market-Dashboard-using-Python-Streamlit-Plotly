@@ -3,6 +3,11 @@
 A professional-grade stock market dashboard built with **Python + Streamlit + Plotly**.
 Track live prices, visualize trends, analyze technical indicators, and compare stocks side-by-side.
 
+
+## 🌐 Live Demo
+
+**Deploy Link:** https://real-time-stock-market-dashboard-using-python-app-plotly-hsk.streamlit.app/
+
 ---
 
 ## 🚀 Features
